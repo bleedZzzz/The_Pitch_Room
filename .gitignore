@@ -29,3 +29,7 @@ Thumbs.db
 
 # ADK
 .adk/
+
+# Internal docs
+pitch-room-PRD.md
+pitch-room-hackathon-roadmap-v2.md
