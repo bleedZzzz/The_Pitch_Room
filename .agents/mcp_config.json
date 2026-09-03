@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "generative-ui": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "generative-ui-mcp"]
+    }
+  }
+}

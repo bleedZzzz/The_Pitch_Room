@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pitch Room — Autonomous AI Greenlight Committee</title>
+    <meta name="description" content="An executive suite of AI studio chiefs that debates your movie pitch using real box office data from the Parallel API.">
+    
+    <!-- Google Fonts: Outfit (Display), Inter (Body), JetBrains Mono (Telemetry) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for Generative UI Visualizations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Subtle Film Grain Overlay -->
+    <div class="film-grain" aria-hidden="true"></div>
+
+    <!-- Top Studio Telemetry Bar -->
+    <header class="studio-nav">
+        <div class="nav-container">
+            <div class="brand-group">
+                <div class="brand-crest">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                        <line x1="7" y1="2" x2="7" y2="22"></line>
+                        <line x1="17" y1="2" x2="17" y2="22"></line>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <line x1="2" y1="7" x2="7" y2="7"></line>
+                        <line x1="2" y1="17" x2="7" y2="17"></line>
+                        <line x1="17" y1="17" x2="22" y2="17"></line>
+                        <line x1="17" y1="7" x2="22" y2="7"></line>
+                    </svg>
+                </div>
+                <div class="brand-titles">
+                    <span class="brand-name">THE PITCH ROOM</span>
+                    <span class="brand-dept">AUTONOMOUS STUDIO GREENLIGHT CHAMBER</span>
+                </div>
+            </div>
+
+            <div class="nav-telemetry">
+                <div class="telemetry-pill">
+                    <span class="pulse-indicator"></span>
+                    <span class="telemetry-text" id="live-status-label">BOARDROOM ACTIVE</span>
+                </div>
+                <div class="tech-spec-group">
+                    <span class="tech-tag">GOOGLE ADK v2.8</span>
+                    <span class="tech-tag">GEMINI 2.0</span>
+                    <span class="tech-tag highlight-parallel">PARALLEL SEARCH API</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="studio-viewport">
+        <!-- PITCH STAGE (SPLIT SCREEN HERO) -->
+        <section class="stage-section" id="pitch-stage">
+            <div class="stage-grid">
+                <!-- Left Column: Screenplay Submission Deck -->
+                <div class="deck-column">
+                    <div class="deck-header">
+                        <div class="classification-badge">
+                            <span class="mono-code">CONFIDENTIAL // TREATMENT SUBMISSION</span>
+                            <span class="doc-id">REF-2026-GL</span>
+                        </div>
+                        <h1 class="deck-headline">Submit your project to the greenlight committee.</h1>
+                        <p class="deck-subtext">Three specialized AI studio executives analyze commercial box office comps, creative award pedigree, and capital risk using the real-time Parallel Search API.</p>
+                    </div>
+
+                    <!-- Screenplay Preset Tabs -->
+                    <div class="treatment-presets">
+                        <div class="presets-caption">Select Treatment Preset:</div>
+                        <div class="preset-buttons">
+                            <button type="button" class="preset-tab active" onclick="loadTreatment('apollo', this)">
+                                <span class="tab-genre">SCI-FI THRILLER</span>
+                                <span class="tab-title">Apollo Zero</span>
+                            </button>
+                            <button type="button" class="preset-tab" onclick="loadTreatment('horror', this)">
+                                <span class="tab-genre">HIGH-CONCEPT HORROR</span>
+                                <span class="tab-title">The Whispering Walls</span>
+                            </button>
+                            <button type="button" class="preset-tab" onclick="loadTreatment('drama', this)">
+                                <span class="tab-genre">HISTORICAL DRAMA</span>
+                                <span class="tab-title">The Silk Diplomat</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Screenplay Logline Input Box -->
+                    <div class="screenplay-terminal">
+                        <div class="terminal-bar">
+                            <div class="file-label">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <span>TREATMENT_LOGLINE.TXT</span>
+                            </div>
+                            <div class="terminal-metrics">
+                                <span id="char-counter" class="char-count">0 / 3,000 CHARACTERS</span>
+                            </div>
+                        </div>
+
+                        <textarea 
+                            id="pitch-input" 
+                            class="screenplay-textarea"
+                            rows="7"
+                            maxlength="3000"
+                            placeholder="Type or paste your feature film pitch, logline, target tone, and budget ambition here..."
+                        ></textarea>
+
+                        <div class="terminal-footer">
+                            <div class="hotkey-tip">
+                                <span class="key-cap">Ctrl</span> + <span class="key-cap">Enter</span> to convene committee
+                            </div>
+                            <div class="deck-actions">
+                                <button type="button" class="btn-ghost" onclick="clearPitchInput()">Clear</button>
+                                <button type="button" class="btn-greenlight" id="btn-convene" onclick="conveneCommittee()">
+                                    <span class="btn-label">Convene Greenlight Meeting</span>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                        <polyline points="12 5 19 12 12 19"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Studio Boardroom Chamber & Executive Dossiers -->
+                <div class="chamber-column">
+                    <!-- Cinematic Visual Anchor Card -->
+                    <div class="boardroom-hero-card">
+                        <img src="/static/assets/pitch_room_bg.jpg" alt="The Pitch Room Executive Boardroom" class="boardroom-bg-img" loading="eager">
+                        <div class="boardroom-overlay">
+                            <div class="live-chamber-badge">
+                                <span class="rec-dot"></span>
+                                <span>EXECUTIVE SUITE // CHAMBER 01</span>
+                            </div>
+                            <div class="boardroom-caption">
+                                <h3>The Greenlight Committee</h3>
+                                <p>Live autonomous debate with real-time box office retrieval.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Executive Dossier Cards -->
+                    <div class="executive-dossiers">
+                        <!-- The Shark -->
+                        <div class="dossier-card shark-dossier">
+                            <div class="dossier-left">
+                                <div class="executive-symbol shark-sym">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="dossier-body">
+                                <div class="dossier-header">
+                                    <span class="exec-role">FINANCIER / HEAD OF RISK</span>
+                                    <span class="exec-name">The Shark</span>
+                                </div>
+                                <p class="exec-desc">Numbers-obsessed, skeptical. Queries the Parallel API for historical budget-to-gross multiples and recent theatrical comps.</p>
+                                <div class="exec-metric-tag">TOOL: PARALLEL BOX OFFICE SEARCH</div>
+                            </div>
+                        </div>
+
+                        <!-- The Auteur Whisperer -->
+                        <div class="dossier-card auteur-dossier">
+                            <div class="dossier-left">
+                                <div class="executive-symbol auteur-sym">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="m14.31 8 5.74 9.94"></path>
+                                        <path d="M9.69 8h11.48"></path>
+                                        <path d="m7.38 12 5.74-9.94"></path>
+                                        <path d="M9.69 16 3.95 6.06"></path>
+                                        <path d="M14.31 16H2.83"></path>
+                                        <path d="m16.62 12-5.74 9.94"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="dossier-body">
+                                <div class="dossier-header">
+                                    <span class="exec-role">CREATIVE CHIEF / PRESTIGE</span>
+                                    <span class="exec-name">The Auteur Whisperer</span>
+                                </div>
+                                <p class="exec-desc">Passionate artistic advocate. Searches festival laureates, critical reception, and cinematic pedigree to champion creative risk.</p>
+                                <div class="exec-metric-tag">TOOL: PARALLEL FESTIVAL COMPS</div>
+                            </div>
+                        </div>
+
+                        <!-- The Chair -->
+                        <div class="dossier-card chair-dossier">
+                            <div class="dossier-left">
+                                <div class="executive-symbol chair-sym">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2v20"></path>
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="dossier-body">
+                                <div class="dossier-header">
+                                    <span class="exec-role">STUDIO CHAIRMAN / ORCHESTRATOR</span>
+                                    <span class="exec-name">The Chair</span>
+                                </div>
+                                <p class="exec-desc">Presides over the deliberation, cross-examines conflicting data, balances art and commerce, and issues the binding studio decree.</p>
+                                <div class="exec-metric-tag">SYNTHESIS: GOOGLE ADK ROOT AGENT</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DELIBERATION STAGE (ACTIVE COMMITTEE TRANSMISSION) -->
+        <section class="deliberation-screen hidden" id="deliberation-screen">
+            <div class="deliberation-box">
+                <div class="transmission-header">
+                    <div class="feed-indicator">
+                        <span class="rec-ping"></span>
+                        <span class="feed-label">LIVE DELIBERATION IN PROGRESS</span>
+                    </div>
+                    <div class="feed-timer" id="feed-timer">00:14 ELAPSED</div>
+                </div>
+
+                <div class="chamber-animation-core">
+                    <div class="radar-scan-ring"></div>
+                    <div class="radar-scan-ring secondary"></div>
+                    <div class="chamber-icon-core">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="2"></circle>
+                            <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <h2 class="deliberation-title">Boardroom Deliberation in Session</h2>
+                <p class="deliberation-sub" id="deliberation-status-text">Delegating screenplay to sub-agents and querying Parallel Search API...</p>
+
+                <!-- Live Agent State Indicators -->
+                <div class="agent-live-grid">
+                    <div class="agent-live-card" id="card-shark">
+                        <div class="agent-live-head">
+                            <div class="agent-badge-circle blue-glow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <div class="agent-live-titles">
+                                <span class="agent-title-text">The Shark</span>
+                                <span class="agent-role-text">Commercial Comp Retrieval</span>
+                            </div>
+                            <span class="agent-status-pill" id="status-pill-shark">QUERYING...</span>
+                        </div>
+                        <div class="agent-live-log" id="log-shark">Searching Parallel API for box office returns of similar genre films...</div>
+                    </div>
+
+                    <div class="agent-live-card" id="card-auteur">
+                        <div class="agent-live-head">
+                            <div class="agent-badge-circle purple-glow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="m14.31 8 5.74 9.94"></path>
+                                    <path d="M9.69 8h11.48"></path>
+                                    <path d="m7.38 12 5.74-9.94"></path>
+                                    <path d="M9.69 16 3.95 6.06"></path>
+                                    <path d="M14.31 16H2.83"></path>
+                                    <path d="m16.62 12-5.74 9.94"></path>
+                                </svg>
+                            </div>
+                            <div class="agent-live-titles">
+                                <span class="agent-title-text">The Auteur Whisperer</span>
+                                <span class="agent-role-text">Prestige & Festival Comps</span>
+                            </div>
+                            <span class="agent-status-pill" id="status-pill-auteur">QUEUED</span>
+                        </div>
+                        <div class="agent-live-log" id="log-auteur">Waiting to cross-reference Sundance & Cannes award-winning comps...</div>
+                    </div>
+
+                    <div class="agent-live-card" id="card-chair">
+                        <div class="agent-live-head">
+                            <div class="agent-badge-circle gold-glow">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2v20"></path>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                </svg>
+                            </div>
+                            <div class="agent-live-titles">
+                                <span class="agent-title-text">The Chair</span>
+                                <span class="agent-role-text">Executive Synthesis</span>
+                            </div>
+                            <span class="agent-status-pill" id="status-pill-chair">STANDBY</span>
+                        </div>
+                        <div class="agent-live-log" id="log-chair">Awaiting financial and creative evidence to draft binding verdict...</div>
+                    </div>
+                </div>
+
+                <div class="deliberation-footer-notice">
+                    <span>Autonomous ADK session with real-time web research. Please allow 30–50 seconds for full committee consensus.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERDICT STAGE (OFFICIAL STUDIO MEMO & GENERATIVE UI WIDGETS) -->
+        <section class="verdict-stage hidden" id="verdict-stage">
+            <div class="memo-container">
+                <!-- Studio Memo Header Bar -->
+                <div class="memo-top-bar">
+                    <div class="memo-ident">
+                        <div class="memo-stamp">TOP EXECUTIVE CLEARANCE</div>
+                        <h2 class="memo-title">Studio Greenlight Memorandum</h2>
+                        <div class="memo-meta-line">
+                            <span>SESSION: <strong id="memo-session-id">GL-88219</strong></span>
+                            <span>•</span>
+                            <span>DATE: <strong id="memo-date">SEPTEMBER 2026</strong></span>
+                            <span>•</span>
+                            <span>STATUS: <strong>RATIFIED</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="memo-actions">
+                        <button type="button" class="btn-memo-action" onclick="copyExecutiveMemo()">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span id="copy-btn-text">Copy Memo</span>
+                        </button>
+                        <button type="button" class="btn-memo-new" onclick="startNewPitch()">
+                            <span>Submit New Pitch</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Executive Verdict Seal & Metric Strip (Generative UI) -->
+                <div class="memo-metric-strip">
+                    <div class="metric-block verdict-block">
+                        <div class="metric-caption">FINAL COMMITTEE DECREE</div>
+                        <div class="verdict-decision-seal" id="final-decision-badge">GREENLIGHT</div>
+                        <div class="metric-annotation" id="final-decision-sub">Approved by The Chair</div>
+                    </div>
+
+                    <div class="metric-block">
+                        <div class="metric-caption">RECOMMENDED BUDGET</div>
+                        <div class="metric-stat gold-text" id="stat-budget">$15M – $25M</div>
+                        <div class="metric-annotation">Based on comps research</div>
+                    </div>
+
+                    <div class="metric-block">
+                        <div class="metric-caption">PROJECTED ROI MULTIPLE</div>
+                        <div class="metric-stat blue-text" id="stat-roi">2.8x – 4.2x</div>
+                        <div class="metric-annotation">The Shark Financial Model</div>
+                    </div>
+
+                    <div class="metric-block">
+                        <div class="metric-caption">PRESTIGE / FESTIVAL INDEX</div>
+                        <div class="metric-stat purple-text" id="stat-prestige">HIGH TIER</div>
+                        <div class="metric-annotation">Auteur Acclaim Potential</div>
+                    </div>
+                </div>
+
+                <!-- Generative Interactive Chart.js Simulation Widget -->
+                <div class="interactive-simulator-panel">
+                    <div class="sim-header">
+                        <div class="sim-header-titles">
+                            <div class="sim-tag">GENERATIVE FINANCIAL SIMULATOR</div>
+                            <h3 class="sim-title">Box Office & Production Break-Even Matrix</h3>
+                            <p class="sim-desc">Adjust the production budget slider below to project break-even points, domestic vs international split, and estimated net returns.</p>
+                        </div>
+                        <div class="chartjs-badge">CHART.JS LIVE ENGINE</div>
+                    </div>
+
+                    <!-- Range Controls (Generative UI Guidelines Compliant) -->
+                    <div class="sim-control-board">
+                        <div class="slider-row">
+                            <div class="slider-info">
+                                <span class="slider-label">Simulated Production Budget:</span>
+                                <span class="slider-value-display" id="sim-budget-display">$20,000,000</span>
+                            </div>
+                            <input type="range" id="sim-budget-slider" class="styled-range" min="5" max="120" step="5" value="20" oninput="handleSimSlider(this.value)">
+                        </div>
+
+                        <div class="stat-projections-grid">
+                            <div class="proj-card">
+                                <span class="proj-title">Theatrical Break-Even (2.5x)</span>
+                                <span class="proj-value text-red" id="proj-breakeven">$50,000,000</span>
+                            </div>
+                            <div class="proj-card">
+                                <span class="proj-title">Est. Domestic Theatrical</span>
+                                <span class="proj-value text-blue" id="proj-domestic">$38,000,000</span>
+                            </div>
+                            <div class="proj-card">
+                                <span class="proj-title">Est. International Gross</span>
+                                <span class="proj-value text-purple" id="proj-intl">$52,000,000</span>
+                            </div>
+                            <div class="proj-card highlight-profit">
+                                <span class="proj-title">Est. Worldwide Net Return</span>
+                                <span class="proj-value text-emerald" id="proj-net">+$40,000,000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas for Chart.js -->
+                    <div class="chart-box">
+                        <canvas id="studio-roi-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Side-by-Side Agent Clash Matrix -->
+                <div class="clash-matrix-panel">
+                    <div class="matrix-side shark-side">
+                        <div class="matrix-head">
+                            <div class="matrix-avatar shark-bg">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="matrix-agent-name">The Shark's Financial Dossier</h4>
+                                <span class="matrix-badge blue-badge">COMMERCIAL COLD ASSESSMENT</span>
+                            </div>
+                        </div>
+                        <div class="matrix-body" id="shark-memo-body">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="matrix-side auteur-side">
+                        <div class="matrix-head">
+                            <div class="matrix-avatar auteur-bg">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="m14.31 8 5.74 9.94"></path>
+                                    <path d="M9.69 8h11.48"></path>
+                                    <path d="m7.38 12 5.74-9.94"></path>
+                                    <path d="M9.69 16 3.95 6.06"></path>
+                                    <path d="M14.31 16H2.83"></path>
+                                    <path d="m16.62 12-5.74 9.94"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="matrix-agent-name">The Auteur's Creative Manifesto</h4>
+                                <span class="matrix-badge purple-badge">PRESTIGE & ARTISTIC VALUE</span>
+                            </div>
+                        </div>
+                        <div class="matrix-body" id="auteur-memo-body">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complete Markdown Deliberation & Production Mandate -->
+                <div class="full-synthesis-card">
+                    <div class="synthesis-header">
+                        <div class="chair-seal-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20"></path>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="synthesis-title">The Chair's Complete Deliberation & Greenlight Mandate</h3>
+                            <span class="synthesis-sub">Full transcript with research comps from Parallel API</span>
+                        </div>
+                    </div>
+                    <div class="markdown-article" id="full-verdict-markdown">
+                        <!-- Full synthesized markdown rendered here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ERROR STAGE -->
+        <section class="stage-section error-stage hidden" id="error-stage">
+            <div class="error-panel">
+                <div class="error-symbol">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F43F5E" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <h2 class="error-heading">Deliberation Interrupted</h2>
+                <p class="error-desc" id="error-desc-msg">The greenlight committee could not reach consensus due to an unexpected exception.</p>
+                <button type="button" class="btn-greenlight" onclick="startNewPitch()">Return to Screening Deck</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Studio Footer -->
+    <footer class="studio-footer">
+        <div class="footer-inner">
+            <div class="footer-left">
+                <span class="studio-sig">THE PITCH ROOM • HOLLYWOOD AGENTIC STUDIO</span>
+                <span class="footer-specs">Google ADK • Gemini 2.0 • Parallel API • Generative UI</span>
+            </div>
+            <div class="footer-right">
+                <span class="hackathon-tag">Agentic Cinema: The Blockbuster Hackathon</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
